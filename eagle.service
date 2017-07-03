@@ -1,0 +1,58 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:		eagled
+# Required-Start:	$remote_fs $syslog
+# Required-Stop:	$remote_fs $syslog
+# Default-Start:	2 3 4 5
+# Default-Stop:		
+# Short-Description:	Eagle Control Server
+### END INIT INFO
+
+set -x
+
+umask 022
+
+CONFIG_FILE="/home/pi/src/eagle/config.json"
+STATE_FILE="/home/pi/src/eagle/state.json"
+EAGLESRV="/home/pi/src/eagle/eagle.py"
+EAGLEOPTS="--file=${CONFIG_FILE} --state=${STATE_FILE}"
+LOGGER="/usr/bin/logger -t eagle "
+
+export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
+
+case "$1" in
+  start)
+	$LOGGER "Starting Eagle Control Server " 
+	$LOGGER "start-stop-daemon --start --quiet --oknodo --pidfile /var/run/eagle.pid --exec $EAGLESRV -- $EAGLEOPTS"
+	start-stop-daemon --start --quiet --oknodo --user pi --background --pidfile /var/run/eagle.pid --exec $EAGLESRV -- $EAGLEOPTS
+	;;
+  stop)
+	$LOGGER "Stopping Eagle Control Server" 
+	start-stop-daemon --stop --quiet --oknodo --pidfile /var/run/eagle.pid
+	;;
+
+  reload|force-reload)
+	$LOGGER "Stopping Eagle Control Server" 
+	start-stop-daemon --stop --quiet --oknodo --pidfile /var/run/eagle.pid
+	$LOGGER "Starting Eagle Control Server " 
+	start-stop-daemon --start --quiet --oknodo --user pi --background --pidfile /var/run/eagle.pid --exec $EAGLESRV -- $EAGLEOPTS
+	;;
+
+  restart)
+	$LOGGER "Stopping Eagle Control Server" 
+	start-stop-daemon --stop --quiet --oknodo --pidfile /var/run/eagle.pid
+	$LOGGER "Starting Eagle Control Server " 
+	start-stop-daemon --start --quiet --oknodo --user pi --background --pidfile /var/run/eagle.pid --exec $EAGLESRV -- $EAGLEOPTS
+	;;
+
+  status)
+	status_of_proc -p /var/run/eagle.pid $EAGLESRV eagle.py && exit 0 || exit $?
+	;;
+
+  *)
+	echo "Usage: /etc/init.d/eagle {start|stop|reload|force-reload|restart|try-restart|status}"
+	exit 1
+esac
+
+exit 0

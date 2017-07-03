@@ -1,0 +1,7 @@
+{ "sleepTime": 5, 
+  "ppADDR": 0,
+  "switches": [
+	{"name":"bank A", "DO": 1, "state":"OFF"},
+        {"name":"bank F", "DO": 6, "state":"OFF"}
+  ] 
+}
