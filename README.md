@@ -1,2 +1,2 @@
 # phoenix-eagle
-Control system for David Broker's eagle project a Pheonix Middle School
+Control system for David Broker's eagle project at Pheonix Middle School
