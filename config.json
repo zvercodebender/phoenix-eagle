@@ -1,11 +1,10 @@
-{ "sleepTime": 1800, 
+{ "sleepTime": 18000, 
   "ppADDR": 0,
   "switches": [
-	{"name":"bank A", "DO": 1, "state":"OFF"},
-        {"name":"bank B", "DO": 2, "state":"OFF"},
-        {"name":"bank C", "DO": 3, "state":"OFF"},
-        {"name":"bank D", "DO": 4, "state":"OFF"},
-        {"name":"bank E", "DO": 5, "state":"OFF"},
-        {"name":"bank F", "DO": 6, "state":"OFF"}
-  ] 
+      { "name": "Bank A", "state": "ON",  "DOList": [1,2] },
+      { "name": "Bank B", "state": "OFF", "DOList": [2,3] },
+      { "name": "Bank C", "state": "OFF", "DOList": [3,4] },
+      { "name": "Bank D", "state": "OFF", "DOList": [4,5] },
+      { "name": "Bank E", "state": "OFF", "DOList": [5,6] }
+  ]
 }

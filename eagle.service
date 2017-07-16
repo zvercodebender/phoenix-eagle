@@ -24,30 +24,33 @@ export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
 case "$1" in
   start)
 	$LOGGER "Starting Eagle Control Server " 
-	$LOGGER "start-stop-daemon --start --quiet --oknodo --pidfile /var/run/eagle.pid --exec $EAGLESRV -- $EAGLEOPTS"
-	start-stop-daemon --start --quiet --oknodo --user pi --background --pidfile /var/run/eagle.pid --exec $EAGLESRV -- $EAGLEOPTS
+	start-stop-daemon --start --verbose --oknodo --user pi --background --make-pidfile --pidfile /var/run/eagle.pid --exec $EAGLESRV -- $EAGLEOPTS
 	;;
   stop)
 	$LOGGER "Stopping Eagle Control Server" 
-	start-stop-daemon --stop --quiet --oknodo --pidfile /var/run/eagle.pid
+        kill -s TERM `cat /var/run/eagle.pid`
+	start-stop-daemon --stop --verbose --remove-pidfile --pidfile /var/run/eagle.pid --signal TERM --exec $EAGLESRV -- $EAGLEOPTS
 	;;
 
   reload|force-reload)
 	$LOGGER "Stopping Eagle Control Server" 
-	start-stop-daemon --stop --quiet --oknodo --pidfile /var/run/eagle.pid
+        kill -s TERM `cat /var/run/eagle.pid`
+	start-stop-daemon --stop --pidfile /var/run/eagle.pid --exec $EAGLESRV -- $EAGLEOPTS
 	$LOGGER "Starting Eagle Control Server " 
-	start-stop-daemon --start --quiet --oknodo --user pi --background --pidfile /var/run/eagle.pid --exec $EAGLESRV -- $EAGLEOPTS
+	start-stop-daemon --start --oknodo --user pi --background --pidfile /var/run/eagle.pid --signal TERM --exec $EAGLESRV -- $EAGLEOPTS
 	;;
 
   restart)
 	$LOGGER "Stopping Eagle Control Server" 
-	start-stop-daemon --stop --quiet --oknodo --pidfile /var/run/eagle.pid
+        kill -s TERM `cat /var/run/eagle.pid`
+	start-stop-daemon --stop --remove-pidfile --pidfile /var/run/eagle.pid --signal TERM --exec $EAGLESRV -- $EAGLEOPTS
 	$LOGGER "Starting Eagle Control Server " 
-	start-stop-daemon --start --quiet --oknodo --user pi --background --pidfile /var/run/eagle.pid --exec $EAGLESRV -- $EAGLEOPTS
+	start-stop-daemon --start --oknodo --user pi --background --make-pidfile --pidfile /var/run/eagle.pid --exec $EAGLESRV -- $EAGLEOPTS
 	;;
 
   status)
-	status_of_proc -p /var/run/eagle.pid $EAGLESRV eagle.py && exit 0 || exit $?
+	start-stop-daemon --status --pidfile /var/run/eagle.pid
+	#status_of_proc -p /var/run/eagle.pid $EAGLESRV eagle.py && exit 0 || exit $?
 	;;
 
   *)

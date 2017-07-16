@@ -32,18 +32,36 @@ def writeFile( fileName, data ):
 # End writeFile
 
 #--------------------------------------------------------------------------------------
-def toggleSwitchState( state, DO ):
+def toggleSwitchState( switch ):
    global ppADDR
-   if (state == 'OFF') :
-      RELAY.relayON( ppADDR, DO )
-      state = 'ON'
+   if (switch['state'] == 'OFF') :
+      RELAY.relayON( ppADDR, switch['DO'] )
+      switch['state'] = 'ON'
    else: 
-      RELAY.relayOFF( ppADDR, DO )
-      state = 'OFF'
+      RELAY.relayOFF( ppADDR, switch['DO'] )
+      switch['state'] = 'OFF'
    # End if
-   print "Setting DO %s = %s" % ( DO, state )
-   return state
+   print "Setting DO %s = %s" % ( switch['DO'], switch['state'] )
+   return switch
 # End toggleSwitchState
+
+#--------------------------------------------------------------------------------------
+def toggleBankState( switch ):
+   global ppADDR
+   swArray = [0,0,0,0,0,0,0]
+   print "Setting %s = %s" % ( switch['name'], switch['state'] )
+   for DO in switch['DOList']:
+      print "  > Turn ON  DO %s " % DO
+      swArray[ DO - 1] = 1
+   # End for
+   bitStr = "%s%s%s%s%s%s%s" % (swArray[6], swArray[5], swArray[4], swArray[3], swArray[2], swArray[1], swArray[0] )
+   print " > Setting all bits %s " % bitStr
+   sw = int( bitStr, 2 )
+   RELAY.relayALL( ppADDR, sw )
+   switch['state'] = 'ON'
+   return switch
+# End toggleSwitchState
+
 
 #--------------------------------------------------------------------------------------
 def usage():
@@ -93,11 +111,11 @@ def main():
   running = True
   #------------------------------------------------------------------------------------
   # Initialize the state of the switches
-  state = {}
+  state = []
   ppADDR=config['ppADDR']
   RELAY.RESET( ppADDR )
   for switch in config['switches']:
-      state[ switch['name'] ] = { "DO": switch['DO'], "state": switch['state'] }
+      state.append({ "name": switch['name'], "state": switch['state'] })
   # End for each
   writeFile( stateFile, state )
   #####################################################################################
@@ -106,14 +124,16 @@ def main():
   ##
   #####################################################################################
   signal.signal( signal.SIGINT, signal_handler)
+  signal.signal( signal.SIGTERM, signal_handler)
   while running:
       for switch in config['switches']:
-         state[ switch['name'] ]['state'] = toggleSwitchState( state[ switch['name'] ]['state'], switch['DO'] )
+         switch = toggleBankState( switch )
          writeFile( stateFile, state )
+         #switch = toggleBankState( switch )
          time.sleep( config['sleepTime'] )
-         state[ switch['name'] ]['state'] = toggleSwitchState( state[ switch['name'] ]['state'], switch['DO'] )
-      # End foreach 
+         switch['state'] = 'OFF'
       print "======"
+      # End foreach 
   # End While
 
 
