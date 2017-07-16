@@ -6,12 +6,15 @@ import getopt
 import sys
 import signal
 import time 
+import logging
 import piplates.RELAYplate as RELAY
+import eaglelog
 
 #--------------------------------------------------------------------------------------
 def signal_handler( signal, frame ):
     global ppADDR
     print('You pressed Ctrl-C!')
+    logger.critical('Caught signal.... Exiting')
     RELAY.RESET( ppADDR )
     sys.exit(0)
 # End signal_handler
@@ -41,7 +44,7 @@ def toggleSwitchState( switch ):
       RELAY.relayOFF( ppADDR, switch['DO'] )
       switch['state'] = 'OFF'
    # End if
-   print "Setting DO %s = %s" % ( switch['DO'], switch['state'] )
+   logger.warn( "Setting DO %s = %s" % ( switch['DO'], switch['state'] ) )
    return switch
 # End toggleSwitchState
 
@@ -49,13 +52,13 @@ def toggleSwitchState( switch ):
 def toggleBankState( switch ):
    global ppADDR
    swArray = [0,0,0,0,0,0,0]
-   print "Setting %s = %s" % ( switch['name'], switch['state'] )
+   logger.info( "Setting %s = %s" % ( switch['name'], switch['state'] ) )
    for DO in switch['DOList']:
-      print "  > Turn ON  DO %s " % DO
+      logger.debug("  > Turn ON  DO %s " % DO )
       swArray[ DO - 1] = 1
    # End for
    bitStr = "%s%s%s%s%s%s%s" % (swArray[6], swArray[5], swArray[4], swArray[3], swArray[2], swArray[1], swArray[0] )
-   print " > Setting all bits %s " % bitStr
+   logger.debug( " > Setting all bits %s " % bitStr )
    sw = int( bitStr, 2 )
    RELAY.relayALL( ppADDR, sw )
    switch['state'] = 'ON'
@@ -78,6 +81,7 @@ def usage():
 #######################################################################################
 #######################################################################################
 #######################################################################################
+logger = eaglelog.getLogging()
 ppADDR = 0
 def main():
   global ppADDR
@@ -118,6 +122,7 @@ def main():
       state.append({ "name": switch['name'], "state": switch['state'] })
   # End for each
   writeFile( stateFile, state )
+  logger.info(state)
   #####################################################################################
   ##
   ##    S T A R T  M A I N  L O O P
@@ -132,7 +137,6 @@ def main():
          #switch = toggleBankState( switch )
          time.sleep( config['sleepTime'] )
          switch['state'] = 'OFF'
-      print "======"
       # End foreach 
   # End While
 
