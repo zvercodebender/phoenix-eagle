@@ -35,23 +35,10 @@ def writeFile( fileName, data ):
 # End writeFile
 
 #--------------------------------------------------------------------------------------
-def toggleSwitchState( switch ):
-   global ppADDR
-   if (switch['state'] == 'OFF') :
-      RELAY.relayON( ppADDR, switch['DO'] )
-      switch['state'] = 'ON'
-   else: 
-      RELAY.relayOFF( ppADDR, switch['DO'] )
-      switch['state'] = 'OFF'
-   # End if
-   logger.warn( "Setting DO %s = %s" % ( switch['DO'], switch['state'] ) )
-   return switch
-# End toggleSwitchState
-
-#--------------------------------------------------------------------------------------
 def toggleBankState( switch ):
    global ppADDR
    swArray = [0,0,0,0,0,0,0]
+   switch['state'] = 'ON'
    logger.info( "Setting %s = %s" % ( switch['name'], switch['state'] ) )
    for DO in switch['DOList']:
       logger.debug("  > Turn ON  DO %s " % DO )
@@ -61,7 +48,6 @@ def toggleBankState( switch ):
    logger.debug( " > Setting all bits %s " % bitStr )
    sw = int( bitStr, 2 )
    RELAY.relayALL( ppADDR, sw )
-   switch['state'] = 'ON'
    return switch
 # End toggleSwitchState
 
@@ -118,11 +104,6 @@ def main():
   state = []
   ppADDR=config['ppADDR']
   RELAY.RESET( ppADDR )
-  for switch in config['switches']:
-      state.append({ "name": switch['name'], "state": switch['state'] })
-  # End for each
-  writeFile( stateFile, state )
-  logger.info(state)
   #####################################################################################
   ##
   ##    S T A R T  M A I N  L O O P
@@ -133,10 +114,9 @@ def main():
   while running:
       for switch in config['switches']:
          switch = toggleBankState( switch )
-         writeFile( stateFile, state )
-         #switch = toggleBankState( switch )
          time.sleep( config['sleepTime'] )
          switch['state'] = 'OFF'
+         logger.info( "Setting %s = %s" % ( switch['name'], switch['state'] ) )
       # End foreach 
   # End While
 
